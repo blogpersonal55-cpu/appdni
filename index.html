@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>App DNI</title>
+</head>
+
+<body>
+
+<h2>🧠 DNI y Emociones</h2>
+
+<input id="dni" placeholder="DNI">
+<button onclick="buscar()">Buscar</button>
+
+<div id="info"></div>
+
+<div id="emociones" style="display:none;">
+    <button onclick="guardar('Feliz')">😀</button>
+    <button onclick="guardar('Triste')">😢</button>
+    <button onclick="guardar('Molesto')">😡</button>
+</div>
+
+<script>
+
+let estudiantes = {};
+let dniActual = "";
+
+fetch("TU_URL_APPS_SCRIPT")
+.then(res => res.json())
+.then(data => {
+    estudiantes = data;
+});
+
+function buscar(){
+
+    let dni = document.getElementById("dni").value;
+
+    if(estudiantes[dni]){
+
+        dniActual = dni;
+
+        document.getElementById("info").innerHTML =
+        estudiantes[dni].nombre + " - " +
+        estudiantes[dni].grado + " " +
+        estudiantes[dni].seccion;
+
+        document.getElementById("emociones").style.display = "block";
+
+    } else {
+        document.getElementById("info").innerHTML = "❌ No encontrado";
+    }
+}
+
+function guardar(emocion){
+
+    let fecha = new Date().toDateString();
+    let key = dniActual + "_" + fecha;
+
+    if(localStorage.getItem(key)){
+        alert("❌ Ya registró hoy");
+        return;
+    }
+
+    localStorage.setItem(key, emocion);
+
+    alert("✅ Emoción guardada: " + emocion);
+}
+
+</script>
+
+</body>
+</html>
