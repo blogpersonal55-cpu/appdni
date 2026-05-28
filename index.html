@@ -1,68 +1,116 @@
 <!DOCTYPE html>
 <html>
 <head>
-<title>App DNI</title>
+  <base target="_top">
+  <style>
+    body {
+      font-family: Arial;
+      text-align: center;
+      background: #f4f4f4;
+      padding-top: 40px;
+    }
+
+    .card {
+      background: white;
+      width: 360px;
+      margin: auto;
+      padding: 20px;
+      border-radius: 12px;
+      box-shadow: 0px 2px 10px rgba(0,0,0,0.1);
+    }
+
+    input, select, button {
+      width: 90%;
+      padding: 10px;
+      margin: 8px 0;
+      border-radius: 8px;
+      border: 1px solid #ccc;
+    }
+
+    button {
+      background: #4CAF50;
+      color: white;
+      border: none;
+      cursor: pointer;
+    }
+
+    button:hover {
+      background: #45a049;
+    }
+
+    .info {
+      text-align: left;
+      margin-top: 10px;
+    }
+  </style>
 </head>
 
 <body>
 
-<h2>🧠 DNI y Emociones</h2>
+<div class="card">
 
-<input id="dni" placeholder="DNI">
-<button onclick="buscar()">Buscar</button>
+  <h2>🔎 Sistema por DNI</h2>
 
-<div id="info"></div>
+  <input type="text" id="dni" placeholder="Ingrese DNI">
+  <button onclick="buscar()">Buscar</button>
 
-<div id="emociones" style="display:none;">
-    <button onclick="guardar('Feliz')">😀</button>
-    <button onclick="guardar('Triste')">😢</button>
-    <button onclick="guardar('Molesto')">😡</button>
+  <div id="resultado"></div>
+
 </div>
 
 <script>
 
-let estudiantes = {};
-let dniActual = "";
+let dniGlobal = "";
 
-fetch("https://script.google.com/macros/s/AKfycbzNx3bsFGWfwO6AvD3v1tWCCb98KDIfFGl1LrU_EEQvRokyIHkGkFArCmBmJH4lRxdl/exec")
-.then(res => res.json())
-.then(data => {
-    estudiantes = data;
-});
+function buscar() {
+  let dni = document.getElementById("dni").value;
 
-function buscar(){
+  google.script.run.withSuccessHandler(function(data) {
 
-    let dni = document.getElementById("dni").value;
-
-    if(estudiantes[dni]){
-
-        dniActual = dni;
-
-        document.getElementById("info").innerHTML =
-        estudiantes[dni].nombre + " - " +
-        estudiantes[dni].grado + " " +
-        estudiantes[dni].seccion;
-
-        document.getElementById("emociones").style.display = "block";
-
-    } else {
-        document.getElementById("info").innerHTML = "❌ No encontrado";
+    if (!data) {
+      document.getElementById("resultado").innerHTML = "❌ DNI no encontrado";
+      return;
     }
+
+    dniGlobal = data.dni;
+
+    document.getElementById("resultado").innerHTML = `
+      <div class="info">
+        <h3>👤 Datos del Estudiante</h3>
+        <p><b>Nombre:</b> ${data.estudiante}</p>
+        <p><b>Grado:</b> ${data.grado}</p>
+        <p><b>Sección:</b> ${data.seccion}</p>
+        <p><b>Nacimiento:</b> ${data.nacimiento}</p>
+      </div>
+
+      <h3>😊 Emoción del día</h3>
+
+      <select id="emocion">
+        <option>Feliz</option>
+        <option>Triste</option>
+        <option>Enojado</option>
+        <option>Calmado</option>
+        <option>Motivado</option>
+      </select>
+
+      <button onclick="guardar()">Registrar emoción</button>
+    `;
+
+  }).buscarEstudiante(dni);
 }
 
-function guardar(emocion){
+function guardar() {
+  let emocion = document.getElementById("emocion").value;
 
-    let fecha = new Date().toDateString();
-    let key = dniActual + "_" + fecha;
+  google.script.run.withSuccessHandler(function(res) {
 
-    if(localStorage.getItem(key)){
-        alert("❌ Ya registró hoy");
-        return;
+    if (res === "YA_REGISTRADO") {
+      alert("⚠️ Ya registraste tu emoción hoy");
+    } else {
+      alert("✅ Emoción registrada correctamente");
     }
 
-    localStorage.setItem(key, emocion);
-
-    alert("✅ Emoción guardada: " + emocion);
+  }).registrarEmocion(dniGlobal, emocion);
 }
 
 </script>
